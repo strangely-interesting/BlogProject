@@ -1,0 +1,12 @@
+{% extends 'Blog/main.html' %}
+{% load crispy_forms_tags %}
+{%block content%}
+
+  <h3 class="page-title my-3">You have been logged out successfully</h3>
+  <p class="text-info">You can <a href="{% url 'login' %}" class="quick-link">Login</a> again</p>
+  <div class="row">
+    <div class="col-7">
+    </div>
+  </div>
+
+{% endblock %}

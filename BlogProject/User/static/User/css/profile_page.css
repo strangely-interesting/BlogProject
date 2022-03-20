@@ -1,0 +1,33 @@
+.profile-image{
+    height: 200px;
+    width: 150px;
+}
+.profile-title{
+    font-family: 'Crimson Text', serif;
+    font-size: 30px;
+}
+.profile-divider{
+    height: 2px;
+    background: gray;
+}
+.profile-content{
+    font-family: 'Crimson Text', serif;
+    font-size: 20px;
+    margin-left: 0.5rem;
+    margin-top: 2rem;
+}
+.profile-links{
+    width: 270px;
+    color: white;
+    margin-left: 0.5rem;
+    padding: 0.3rem;
+}
+.btn-circle{
+  border: none;
+  color: white;
+  height: 50px;
+  width: 50px;
+  text-align: center;
+  display: inline-block;
+  border-radius: 50%;
+}

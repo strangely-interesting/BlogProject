@@ -1,0 +1,77 @@
+{%  load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Blog</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{% static 'Blog/css/bootstrap.min.css' %}">
+  <!-- Font awesome -->
+  <script src="{% static 'Blog/js/all.js' %}"></script>
+  <!-- Main page CSS -->
+  <link rel="stylesheet" href="{% static 'Blog/css/main_page.css' %}">
+  <!-- Google fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Kaushan+Script&display=swap" rel="stylesheet">
+
+</head>
+<body>
+
+  <!-- Nav Bar -->
+  <nav class="navbar navbar-expand-sm navbar-dark">
+    <a class="navbar-brand" href="{% url 'Blog:home' %}">KbK</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navLinks">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navLinks">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'Blog:home' %}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'profile_self' %}">Profile</a>
+        </li>
+        {% if user.is_authenticated %}
+          <li class="nav-item d-sm-none">
+            <a class="nav-link" href="{% url 'logout' %}" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+          </li>
+        {% else %}
+          <li class="nav-item d-sm-none">
+            <a class="nav-link" href="{% url 'register_user' %}">Register</a>
+          </li>
+          <li class="nav-item d-sm-none">
+            <a class="nav-link" href="{% url 'login' %}" title="Login"><i class="fas fa-sign-in-alt"></i></a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+    {% if user.is_authenticated %}
+      <span class="navbar-text d-none d-sm-block mr-4">
+        Welcome {{ user.first_name|title }} {{ user.last_name|title }}
+        <p class="m-0"><small>Last visited : {{ user.profile.last_visited }}</small></p>
+      </span>
+      <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-light d-none d-sm-block">Logout</a>
+    {% else %}
+      <a href="{% url 'register_user' %}" id="nav-register" class="d-none d-sm-block text-light mr-3">Register</a>
+      <a href="{% url 'login' %}" class="btn btn-sm btn-outline-light d-none d-sm-block">Login</a>
+    {% endif %}
+  </nav>
+  <!-- End of Nav Bar -->
+
+  <!-- Page Content -->
+  <div class="container">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+  {% block content %}
+  {% endblock %}
+  </div>
+
+  <!-- Bootstrap and jQuery -->
+  <script src="{% static 'Blog/js/jquery-3.5.1.min.js' %}"></script>
+  <script src="{% static 'Blog/js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

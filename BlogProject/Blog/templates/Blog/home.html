@@ -1,0 +1,270 @@
+{% extends 'Blog/main.html' %}
+{% load static %}
+{% block content %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Blog-Profile</title>
+  <!-- Profile page CSS -->
+  <link rel="stylesheet" href="{% static 'Blog/css/posts.css' %}">
+  <!-- Google fonts -->
+</head>
+<body>
+  <div class="row my-2 no-gutters">
+    <!-- Left part -->
+    <div class="col-md-2 my-3">
+      <a href="{% url 'Blog:create_post' %}"
+         class="btn btn-danger ml-5 mt-3 m-md-0 text-white font-weight-bold float-md-right"
+         style="font-size: 12px; border-radius: 24px; width: 110px;">
+        <i class="fas fa-plus"></i>
+        Create New
+      </a>
+      <a href="{% url 'Blog:unread' %}"
+         class="btn btn-dark ml-3 mt-3 text-white font-weight-bold float-md-right"
+         style="font-size: 12px; border-radius: 24px; width: 110px;">
+        <i class="fas fa-bell"></i>
+        Posts&nbsp
+        {% if user.unreadpost_set.count > 0 %}
+          <span class="badge badge-light">{{ user.unreadpost_set.count }}&nbspNew</span>
+        {% endif %}
+      </a>
+    </div>
+    <!-- Posts area -->
+    <div class="col-md-6 post-area">
+      {% for post in posts %}
+        <div class="row post-block">
+          <div class="col">
+            <!-- Post Head -->
+            <div class="row post-head justify-content-between">
+              <div class="row mx-1">
+                <!-- Author profile pic -->
+                {% if post.author.username == user.username %}
+                  <a href="{% url 'profile_self' %}" title="{{ post.author.profile.full_name|title }}">
+                    <img src="{{ post.author.profile.profile_image.url }}"
+                         alt="{{ post.author.first_name|title }}"
+                         class="img-fluid post-author-image">
+                  </a>
+                {% else %}
+                  <a href="{% url 'profile_others' post.author.username %}" title="{{ post.author.profile.full_name|title }}">
+                    <img src="{{ post.author.profile.profile_image.url }}"
+                         alt="{{ post.author.first_name|title }}"
+                         class="img-fluid post-author-image">
+                  </a>
+                {% endif %}
+                <!-- Author Title and datetime -->
+                <div class="align-self-start mx-2">
+                  <p class="m-0">
+                    {% if post.author.username == user.username %}
+                      <a class="post-author-name" href="{% url 'profile_self' %}">
+                        {{ post.author.profile.full_name|title }}</a>
+                    {% else %}
+                      <a class="post-author-name" href="{% url 'profile_others' post.author.username %}">
+                        {{ post.author.profile.full_name|title }}</a>
+                    {% endif %}
+                  </p>
+                  <p class="post-date m-0">{{ post.post_date }}</p>
+                </div>
+              </div>
+              <div class="row mx-1 justify-content-end">
+                <!--{% if post.author == request.user %}
+                <a class="btn btn-info p-1 mr-1" href="{% url 'Blog:delete_post' post.id %}" role="button"
+                   style="height: 28px; font-size: 12px; background: #1d3557; border: none;">
+                  Delete Post
+                </a>
+                {% endif %}-->
+                <a class="btn btn-info p-1" href="{% url 'Blog:post_details' post.id %}" role="button"
+                   style="height: 28px; font-size: 12px; background: #1d3557; border: none;">
+                  <i class="fab fa-readme"></i> View Post
+                </a>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="post-divider"></div>
+
+            <!-- Post Body -->
+            <div>
+              <!-- Caption -->
+              <p class="post-caption">{{ post.post_caption|title }}</p>
+              <!-- Images -->
+              {% if post.postimage_set.count > 0 %}
+                <div class="row no-gutters m-2">
+                  {% for img in post.postimage_set.all|slice:":3" %}
+                  <div class="col{{ forloop.counter0|add:'-4' }} my-auto">
+                    <img src="{{ img.image.url }}" alt="" class="img-fluid img-thumbnail bg-danger">
+                  </div>
+                  {% endfor %}
+                  <div class="col-3 align-self-center">
+                    {% if post.postimage_set.count > 3 %}
+                    <span class="text-dark p-1 mx-2 border rounded-circle font-weight-bold"
+                          style="font-size: 14px;">
+                      +{{ post.postimage_set.count|add:'-3' }}
+                    </span>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endif %}
+              <!-- Post text -->
+              <div class="post-text">{{ post.post_text|linebreaks|truncatewords:"30" }}</div>
+              <!-- Likes and comments -->
+              <div class="row m-1 justify-content-between">
+                <!-- Like count -->
+                <div class="text-secondary">
+                  <span class="post-like-count" id="likeCount{{ post.id }}">
+                    {{ post.postlike_set.count }} like{{ post.postlike_set.count|pluralize }}
+                  </span>&nbsp
+                  <span class="post-like-count">
+                    {{ post.postcomment_set.count }} comment{{ post.postcomment_set.count|pluralize }}
+                  </span>
+                </div>
+                <div>
+                <!-- Comment icon -->
+                <button class="p-0 mr-1" id="comment{{ post.id }}" onclick="showComments({{ post.id }})"
+                        style="background: white; border: none; outline: none;">
+                  <i class="far fa-comment"></i>
+                </button>
+                <!-- Like icon -->
+                <button class="p-0" id="like{{ post.id }}" onclick="likePost({{ post.id }})"
+                        style="background: white; border: none; outline: none;">
+                  <i class="fas fa-thumbs-up"></i>
+                </button>
+                </div>
+              </div>
+              <!-- Comment box and send -->
+              <div class="input-group mb-2 border rounded">
+                <input type="text" class="form-control border-0" placeholder="Comment" id="commentBox{{ post.id }}"
+                       aria-label="Recipient's username" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                  <button style="background: white; border: none; outline: none;" type="button"
+                          onclick="addComment({{ post.id }})">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+      <div class="pagination mb-2 border border-warning px-2" style="font-size: 14px;">
+        <span class="step-links">
+          {% if page_obj.has_previous %}
+            {% if page_obj.previous_page_number > 1 %}
+              <a href="?page=1" class="text-info"><u>first</u></a>
+            {% endif %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="text-info"><u>previous</u></a>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <a href="?page={{ num }}" class="text-dark"><u>{{ num }}</u></a>
+            {% elif num > page_obj.number|add:'-2' and num < page_obj.number|add:'2' %}
+              <a href="?page={{ num }}" class="text-primary"><u>{{ num }}</u></a>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+              <a href="?page={{ page_obj.next_page_number }}" class="text-info"><u>next</u></a>
+              {% if page_obj.next_page_number < page_obj.paginator.num_pages %}
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="text-info"><u>last</u> &raquo;</a>
+              {% endif %}
+          {% endif %}
+        </span>
+    </div>
+    </div>
+    <!-- Right side part -->
+    <div class="col w-auto my-3">
+      <div id="accordion">
+        <!-- Most Liked -->
+        <div class="card">
+          <div class="card-header btn" data-toggle="collapse" data-target="#collapseMostLiked"
+               aria-expanded="true" aria-controls="collapseOne" id="headingMostLiked">
+            <h6>Most Liked</h6>
+          </div>
+          <div class="collapse" id="collapseMostLiked" aria-labelledby="headingMostLiked" data-parent="#accordion">
+            <div class="card-body" id="mostLikedPosts">
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header btn" data-toggle="collapse" data-target="#collapseMostViewed"
+               aria-expanded="true" aria-controls="collapseOne" id="headingMostViewed">
+            <h6>Most Viewed</h6>
+          </div>
+          <div class="collapse" id="collapseMostViewed" aria-labelledby="headingMostLiked" data-parent="#accordion">
+            <div class="card-body">
+              <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laudantium, magnam.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+
+
+    function likePost(post_id) {
+      var like_cnt = document.getElementById("likeCount" + post_id)
+      var like_btn = document.getElementById("like" + post_id)
+      $.ajax(
+      {
+        type:"GET",
+        url: "{% url 'Blog:like_post' %}",
+        data:{
+                 post_id: post_id
+        },
+        success: function(response)
+        {
+            if ( response["user_msg"] ) {
+              alert(response["user_msg"]);
+            }
+            else {
+              var like_cnt = response["like_count"]
+              if ( like_cnt === 1) {
+                $( '#likeCount'+ post_id ).text(like_cnt + " like");
+              }
+              else {
+                $( '#likeCount'+ post_id ).text(like_cnt + " likes");
+              }
+              like_btn.style.color = "blue";
+            }
+        },
+        error: function (response) {
+            alert(response["error"]);
+        }
+
+      })
+    }
+
+    function addComment(post_id) {
+      var comment_box = document.getElementById("commentBox" + post_id);
+      var post_comment = comment_box.value.trim();
+      if ( post_comment.length === 0 ) {
+        alert("Add some proper comment. It's blank.");
+      }
+      else {
+        $.ajax(
+        {
+          type:"GET",
+          url: "{% url 'Blog:add_comment' %}",
+          data : { post_id: post_id, comment_text: post_comment },
+          success: function(response)
+          {
+            var msg = response["message"];
+            alert(msg);
+            comment_box.value = "";
+          },
+          error: function (response) {
+              alert(response["error"]);
+          }
+        })
+      }
+    }
+  </script>
+</body>
+<script src="{% static 'Blog/js/jquery-3.5.1.min.js' %}"></script>
+<script src="{% static 'Blog/js/blog.js' %}"></script>
+{% endblock %}

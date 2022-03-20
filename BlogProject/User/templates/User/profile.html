@@ -1,0 +1,131 @@
+{% extends 'Blog/main.html' %}
+{% load crispy_forms_tags %}
+{%  load static %}
+
+{%block content%}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Blog-Profile</title>
+  <!-- Profile page CSS -->
+  <link rel="stylesheet" href="{% static 'User/css/profile_page.css' %}">
+  <!-- Google fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Crimson+Text:700i&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital@1&display=swap" rel="stylesheet">
+</head>
+<body>
+  <h3 class="page-title my-3">Profile for {{ profile.full_name|title }}</h3>
+  <div class="page-title-underline"></div>
+  <div class="row">
+    <!-- Current Profile View -->
+    <div class="col-md-6">
+      <!-- Profile image and name -->
+      <div class="row mb-3 ml-2 justify-content-between">
+        <img src="{{ profile.profile_image_url }}" title="{{ profile.full_name|title }}"
+             class="img-fluid rounded-circle profile-image">
+        <div class="profile-title align-self-start w-50">
+          {{ profile.full_name|title }}
+          <p style="font-family: 'Source Sans Pro', sans-serif; font-size: 14px;"><b>About me</b> :
+            {% if profile.about_me|wordcount > 12 %}
+              <span id="lesstext" style="display: inline">{{ profile.about_me|truncatewords:"12" }}</span>
+              <span id="moretext" style="display: none">{{ profile.about_me }}</span>
+              <a href="#" id="linkmoreless" onclick="funcShowMoreLess() " style="display: inline">Read more</a>
+            {% else %}
+              {{ profile.about_me }}
+            {% endif %}
+          </p>
+        </div>
+        <div style="width: 50px;">
+          {% if profile.username == user.username %}
+          <button type="button" class="btn btn-circle btn-primary" title="Update Profile"
+                  onclick="showUpdateForm()">
+            <i class="fas fa-pencil-alt"></i>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+      <div class="profile-divider w-100 m-auto"></div>
+      <!-- Other info -->
+      <div class="row profile-content">
+        <div class="col">
+          <p>Email : {{ profile.email }}</p>
+          <p>Age : {{ profile.age }}</p>
+          <p>Organization : {{ profile.organization }}</p>
+          <p>City : {{ profile.city }}</p>
+        </div>
+      </div>
+      <!-- Profile Links -->
+      <div class="row bg-secondary profile-links justify-content-around">
+          <a href="{{ profile.insta_profile }}" target="_blank" title="Instagram profile : {{ profile.insta_profile }}">
+            <i class="text-white fab fa-instagram fa-2x"></i>
+          </a>
+          <a href="{{ profile.facebook_profile }}" target="_blank" title="Facebook profile : {{ profile.facebook_profile }}">
+            <i class="text-white fab fa-facebook fa-2x"></i>
+          </a>
+          <a href="{{ profile.linkedin_profile }}" target="_blank" title="LinkedIn profile : {{ profile.linkedin_profile }}">
+            <i class="text-white fab fa-linkedin fa-2x"></i>
+          </a>
+          <a href="{{ profile.twitter_profile }}" target="_blank" title="Twitter profile : {{ profile.twitter_profile }}">
+            <i class="text-white fab fa-twitter fa-2x"></i>
+          </a>
+      </div>
+    </div>
+    <!-- End Profile View -->
+
+    <!-- Update Profile Form -->
+    <div class="col-md-6 px-4 mt-5 mt-md-0" style="display: none" id="updateForm">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row justify-content-between">
+        <h4 class="text-primary mb-4 ml-3">Update Profile</h4>
+          <div class="btn btn-sm" style="height: 25px; width: 25px:" onclick="closeUpdateForm()" title="Close">
+            <i class="fas fa-times"></i>
+          </div>
+        </div>
+        {{ u_form|crispy }}
+        {{ p_form|crispy }}
+        <button class="btn btn-lg btn-blog my-3" type="submit">Update</button>
+      </form>
+    </div>
+    <!-- End Profile Form -->
+
+    <script>
+      function funcShowMoreLess(){
+        var less_text = document.getElementById("lesstext")
+        var more_text = document.getElementById("moretext")
+        var link_more_less = document.getElementById("linkmoreless")
+        if (more_text.style.display === "none") {
+          more_text.style.display = "inline";
+          less_text.style.display = "none";
+          link_more_less.innerHTML = "Read less";
+          link_more_less.style.display = "block";
+        }
+        else {
+          more_text.style.display = "none";
+          less_text.style.display = "inline";
+          link_more_less.innerHTML = "Read more";
+          link_more_less.style.display = "inline";
+        }
+      }
+
+      function showUpdateForm() {
+        var update_form = document.getElementById("updateForm")
+        if (update_form.style.display === "none") {
+          update_form.style.display = "block";
+          document.getElementById("user_first_name").focus()
+        }
+      }
+
+      function closeUpdateForm() {
+        var update_form = document.getElementById("updateForm")
+        if (update_form.style.display === "block") {
+          update_form.style.display = "none";
+        }
+      }
+    </script>
+  </div>
+</body>
+{% endblock %}

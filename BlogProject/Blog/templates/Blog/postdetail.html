@@ -1,0 +1,292 @@
+{% extends 'Blog/main.html' %}
+{% load static %}
+{% block content %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Blog-Profile</title>
+  <!-- Profile page CSS -->
+  <link rel="stylesheet" href="{% static 'Blog/css/posts.css' %}">
+  <!-- Google fonts -->
+</head>
+<body>
+
+  <div class="row my-2">
+    <!-- Posts area -->
+    <div class="col-lg-8 mt-3">
+        <div class="row post-block">
+          <!-- Post Caption -->
+          <div class="col-10">
+            <h4 class="page-title m-3">{{ post.post_caption|title }}</h4>
+          </div>
+          <div class="col-2 p-0">
+            {% if post.author == request.user %}
+            <a class="float-right mr-3 mt-3" href="{% url 'Blog:delete_post' post.id %}" role="button"
+               title="Delete Post" style="font-size: 16px; color: black;">
+              <i class="fas fa-trash-alt"></i>
+            </a>
+            <a class="float-right mr-2 mt-3 ml-0" href="{% url 'Blog:edit_post' post.id %}" role="button"
+               title="Edit Post" style="font-size: 16px; color: black;">
+              <i class="fas fa-edit"></i>
+            </a>
+            {% endif %}
+          </div>
+          <!-- Post Date -->
+          <div class="col-6 font-weight-bold">
+            <p class="ml-3 my-0" style="font-size: 14px;">
+              {% if post.author.username == user.username %}
+                <a href="{% url 'profile_self' %}">
+                  {{ post.author.profile.full_name|title }}</a>
+              {% else %}
+                <a href="{% url 'profile_others' post.author.username %}">
+                  {{ post.author.profile.full_name|title }}</a>
+              {% endif %}
+            </p>
+            <p class="ml-3 mb-2" style="font-size: 14px;">{{ post.post_date|date:"M jS, Y H:i:s" }}</p>
+          </div>
+          <!-- Post Author -->
+          <div class="col-6">
+            <div class="row">
+              <!-- Author profile pic -->
+              <!--{% if post.author.username == user.username %}
+                <a href="{% url 'profile_self' %}" title="{{ post.author.profile.full_name|title }}">
+                  <img src="{{ post.author.profile.profile_image.url }}"
+                       alt="{{ post.author.first_name|title }}"
+                       class="img-fluid post-author-image">
+                </a>
+              {% else %}
+                <a href="{% url 'profile_others' post.author.username %}" title="{{ post.author.profile.full_name|title }}">
+                  <img src="{{ post.author.profile.profile_image.url }}"
+                       alt="{{ post.author.first_name|title }}"
+                       class="img-fluid post-author-image">
+                </a>
+              {% endif %}-->
+              <!-- Author Title and datetime -->
+              <div class="align-self-start mx-2">
+
+                <!--<p class="post-date m-0">{{ post.post_date }}</p>-->
+              </div>
+            </div>
+          </div>
+
+          <div class="col">
+
+            <!-- Divider -->
+            <div class="post-divider"></div>
+
+            <!-- Post Body -->
+            <div>
+              <!-- Caption -->
+              <!--<p class="post-caption">{{ post.post_caption|title }}</p>-->
+              <!-- Images -->
+              {% if post.postimage_set.count %}
+              <div id="carouselPostImages" class="carousel slide my-3 bg-dark d-flex" data-ride="carousel"
+                   style="height: 500px">
+                <ol class="carousel-indicators">
+                  {% for img in post.postimage_set.all %}
+                    {% if forloop.counter0 == 0 %}
+                      <li data-target="#carouselPostImages" data-slide-to="{{ forloop.counter0 }}" class="active"></li>
+                    {% else %}
+                      <li data-target="#carouselPostImages" data-slide-to="{{ forloop.counter0 }}"></li>
+                    {% endif %}
+                  {% endfor %}
+                </ol>
+                <div class="carousel-inner align-self-center">
+                  {% for img in post.postimage_set.all %}
+                    {% if forloop.counter == 1%}
+                      <div class="carousel-item active">
+                        <img class="img-fluid d-block" src="{{ img.image.url }}" alt="First slide">
+                      </div>
+                    {% else %}
+                      <div class="carousel-item">
+                        <img class="img-fluid d-block" src="{{ img.image.url }}" alt="First slide">
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                <a class="carousel-control-prev" href="#carouselPostImages" role="button" data-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#carouselPostImages" role="button" data-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="sr-only">Next</span>
+                </a>
+              </div>
+              {% endif %}
+
+              <!-- Post text -->
+              <div class="post-text">{{ post.post_text|linebreaks }}</div>
+              <!-- Likes and comments -->
+              <div class="row m-1 justify-content-between">
+                <!-- Like count -->
+                <div class="text-secondary">
+                  <span class="post-like-count" id="likeCount{{ post.id }}">
+                    {{ post.postlike_set.count }} like{{ post.postlike_set.count|pluralize }}
+                  </span>&nbsp
+                  <span class="post-like-count">
+                    {{ post.postcomment_set.count }} comment{{ post.postcomment_set.count|pluralize }}
+                  </span>
+                </div>
+                <div>
+                <!-- Comment icon -->
+                <button class="p-0 mr-1" id="comment{{ post.id }}" onclick="showComments({{ post.postcomment_set.count }})"
+                        title="Show comments" style="background: white; border: none; outline: none;">
+                  <i class="far fa-comment"></i>
+                </button>
+                <!-- Like icon -->
+                <button class="p-0" id="like{{ post.id }}" onclick="likePost({{ post.id }})"
+                        style="background: white; border: none; outline: none;">
+                  <i class="fas fa-thumbs-up"></i>
+                </button>
+                </div>
+              </div>
+              <div class="bg-success font-weight-bold text-center" id="commentHdr"
+                   style="font-size: 10px; display: none;">
+                Comments
+              </div>
+              <div class="container py-2 mb-2 border-top-0 border border-dark" id="commentWindow" style="display: none;">
+                {% for comment in post.postcomment_set.all %}
+                  {% if comment.comment_by == request.user %}
+                    <div class="row my-1 justify-content-end" style="margin-right: 0.1rem;">
+                      <div class="border px-1 bg-light" style="border-radius: 5px 10px 5px;">
+                        <p class="m-0" style="font-size: 8px; font-weight: bold;">You</p>
+                        <span class="p-0">{{ comment }}</span>
+                      </div>
+                    </div>
+                  {% else %}
+                    <div class="row my-1 justify-content-start" style="margin-left: 0.1rem">
+                      <div class="border px-1 bg-light" style="border-radius: 5px 10px 5px;">
+                        <p class="m-0" style="font-size: 8px; font-weight: bold;">
+                          {{ comment.comment_by.profile.full_name|title }}</p>
+                        <span class="p-0">{{ comment }}</span>
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <!-- Comment box and send -->
+              <div class="input-group mb-2 border rounded">
+                <input type="text" class="form-control border-0" placeholder="Comment" id="commentBox{{ post.id }}"
+                       aria-label="Recipient's username" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                  <button style="background: white; border: none; outline: none;" type="button"
+                          onclick="addComment({{ post.id }})">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+    </div>
+    <!-- About author -->
+    <div class="col-lg-4 my-3">
+      <h5 class="my-2 font-weight-bold" style="color: #fd1300">About author</h5>
+      <div class="post-divider my-2"></div>
+      <!-- Author profile pic -->
+      <div class="row justify-content-center">
+      {% if post.author.username == user.username %}
+        <a href="{% url 'profile_self' %}" title="{{ post.author.profile.full_name|title }}">
+          <img src="{{ post.author.profile.profile_image.url }}"
+               alt="{{ post.author.first_name|title }}"
+               class="img-fluid rounded-circle my-2" style="height: 50vh;">
+        </a>
+      {% else %}
+        <a href="{% url 'profile_others' post.author.username %}" title="{{ post.author.profile.full_name|title }}">
+          <img src="{{ post.author.profile.profile_image.url }}"
+               alt="{{ post.author.first_name|title }}"
+               class="img-fluid rounded-circle my-2" style="height: 50vh;">
+        </a>
+      {% endif %}
+      </div>
+      <!-- About text -->
+      <div class="row mx-3 p-3">
+        <p class="text-justify font-italic">{{ post.author.profile.about_me }}</p>
+      </div>
+    </div>
+  </div>
+  <script>
+    function showComments(cmnt_cnt) {
+      var cmnt_hdr = document.getElementById("commentHdr")
+      var cmnt_wndw = document.getElementById("commentWindow")
+      if (cmnt_cnt > 0) {
+        if (cmnt_wndw.style.display === "none") {
+          cmnt_wndw.style.display = "block"
+          cmnt_hdr.style.display = "block"
+        }
+        else {
+          cmnt_wndw.style.display = "none"
+          cmnt_hdr.style.display = "none"
+        }
+      }
+      else {
+        alert("There are no comments to show.")
+      }
+    }
+
+    function likePost(post_id) {
+      var like_cnt = document.getElementById("likeCount" + post_id)
+      var like_btn = document.getElementById("like" + post_id)
+      $.ajax(
+      {
+        type:"GET",
+        url: "{% url 'Blog:like_post' %}",
+        data:{
+                 post_id: post_id
+        },
+        success: function(response)
+        {
+            if ( response["user_msg"] ) {
+              alert(response["user_msg"]);
+            }
+            else {
+              var like_cnt = response["like_count"]
+              if ( like_cnt === 1) {
+                $( '#likeCount'+ post_id ).text(like_cnt + " like");
+              }
+              else {
+                $( '#likeCount'+ post_id ).text(like_cnt + " likes");
+              }
+              like_btn.style.color = "blue";
+            }
+        },
+        error: function (response) {
+            alert(response["error"]);
+        }
+
+      })
+    }
+
+    function addComment(post_id) {
+      var comment_box = document.getElementById("commentBox" + post_id);
+      var post_comment = comment_box.value.trim();
+      if ( post_comment.length === 0 ) {
+        alert("Add some proper comment. It's blank.");
+      }
+      else {
+        $.ajax(
+        {
+          type:"GET",
+          url: "{% url 'Blog:add_comment' %}",
+          data : { post_id: post_id, comment_text: post_comment },
+          success: function(response)
+          {
+            var msg = response["message"];
+            alert(msg);
+            comment_box.value = "";
+          },
+          error: function (response) {
+              alert(response["error"]);
+          }
+        })
+      }
+    }
+
+  </script>
+</body>
+{% endblock %}

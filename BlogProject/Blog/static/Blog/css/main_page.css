@@ -1,0 +1,29 @@
+body{
+    background: #c6def1;
+}
+nav{
+    font-family: 'Kaushan Script', cursive;
+    background: #1a535c;
+}
+#nav-register:hover{
+    text-decoration: none;
+}
+.page-title{
+    font-size: 1.75rem;
+    color: #2c4268;
+}
+.page-title-underline{
+    width: auto;
+    height: 5px;
+    background: #ffba08;
+    margin-bottom: 2rem;
+}
+.quick-link{
+    text-decoration: underline;
+    color: #355070;
+}
+.btn-blog{
+    background: #355070;
+    color: white;
+    font-family: 'Kaushan Script', cursive;
+}

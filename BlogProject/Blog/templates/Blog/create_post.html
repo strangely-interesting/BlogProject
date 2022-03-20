@@ -1,0 +1,56 @@
+{% extends 'Blog/main.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Blog-Profile</title>
+    <!-- Profile page CSS -->
+    <link rel="stylesheet" href="{% static 'Blog/css/main_page.css' %}">
+    <link rel="stylesheet" href="{% static 'Blog/css/posts.css' %}">
+    <!-- Google fonts -->
+</head>
+<body>
+  <div class="container bg-light my-4 py-3">
+    <h4 class="page-title">Create New Post</h4>
+    <div class="page-title-underline"></div>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form|crispy }}
+      {{ image_forms.management_form }}
+      <div id="imgFormSet" class="row mb-3">
+        <div class="col-12 mb-2">
+            <button type="button" class="btn btn-sm btn-dark" onclick="addImage()">
+                <i class="far fa-image"></i> Add Image
+            </button>
+        </div>
+        {% for img_form in image_forms %}
+          <div class="container">
+            {{ img_form|crispy }}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div id="emptyForm" style="display:none">
+        {{ image_forms.empty_form }}
+      </div>
+
+      <div class="post-divider"></div>
+      <button type="submit" class="btn btn-blog my-2">Create</button>
+    </form>
+  </div>
+
+  <script type="">
+    function addImage() {
+      var total_forms = $("#id_postimage_set-TOTAL_FORMS").val();
+      $('#imgFormSet').append('<div class="container">' + $('#emptyForm').html().replace(/__prefix__/g, total_forms) + '</div>');
+      $('#id_postimage_set-TOTAL_FORMS').val(parseInt(total_forms) + 1);
+    }
+  </script>
+
+</body>
+{% endblock %}

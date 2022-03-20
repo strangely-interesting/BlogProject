@@ -1,0 +1,15 @@
+{% extends 'Blog/main.html' %}
+{% block content %}
+  <div class="container bg-light py-1">
+    <h4 class="page-title my-3">Delete Post</h4>
+    <div class="page-title-underline"></div>
+    <form method="post">
+      {% csrf_token %}
+      <h6>Are you sure you want to delete the post "{{ post.post_caption|title }}" ?</h6>
+      <div class="form-group">
+        <button class="btn btn-outline-danger" type="submit">Yes, delete</button>
+        <a href="{% url 'Blog:post_details' post.id %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

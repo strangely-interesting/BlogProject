@@ -1,0 +1,252 @@
+{% extends 'Blog/main.html' %}
+{% load static %}
+{% block content %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Blog-Profile</title>
+  <!-- Profile page CSS -->
+  <link rel="stylesheet" href="{% static 'Blog/css/posts.css' %}">
+  <!-- Google fonts -->
+</head>
+<body>
+  <div class="container bg-light my-4 py-2">
+    <h4 class="page-title">New Posts</h4>
+    <div class="page-title-underline"></div>
+    {% if unread_posts %}
+    <div class="row my-2 bg-dark">
+      <div class="col-md-2 my-3">
+        <button class="btn btn-sm btn-warning font-weight-bold float-right"
+                onclick="markAllRead()">
+          Mark all read</button>
+      </div>
+      <div class="col-md-6 post-area">
+
+        {% for unread_post in unread_posts %}
+          <div class="row post-block border border-danger">
+            <div class="col">
+              <!-- Post Head -->
+              <div class="row post-head justify-content-between">
+                <div class="row mx-1">
+                  <!-- Author profile pic -->
+                  {% if unread_post.post.author.username == user.username %}
+                    <a href="{% url 'profile_self' %}" title="{{ unread_post.post.author.profile.full_name|title }}">
+                      <img src="{{ unread_post.post.author.profile.profile_image.url }}"
+                           alt="{{ unread_post.post.author.first_name|title }}"
+                           class="img-fluid post-author-image">
+                    </a>
+                  {% else %}
+                    <a href="{% url 'profile_others' unread_post.post.author.username %}"
+                       title="{{ unread_post.post.author.profile.full_name|title }}">
+                      <img src="{{ unread_post.post.author.profile.profile_image.url }}"
+                           alt="{{ unread_post.post.author.first_name|title }}"
+                           class="img-fluid post-author-image">
+                    </a>
+                  {% endif %}
+                  <!-- Author Title and datetime -->
+                  <div class="align-self-start mx-2">
+                    <p class="m-0">
+                      {% if unread_post.post.author.username == user.username %}
+                        <a class="post-author-name" href="{% url 'profile_self' %}">
+                          {{ unread_post.post.author.profile.full_name|title }}</a>
+                      {% else %}
+                        <a class="post-author-name" href="{% url 'profile_others' unread_post.post.author.username %}">
+                          {{ unread_post.post.author.profile.full_name|title }}</a>
+                      {% endif %}
+                    </p>
+                    <p class="post-date m-0">{{ unread_post.post.post_date }}</p>
+                  </div>
+                </div>
+                <div class="row mx-1 justify-content-end">
+                  <!--{% if post.author == request.user %}
+                  <a class="btn btn-info p-1 mr-1" href="{% url 'Blog:delete_post' post.id %}" role="button"
+                     style="height: 28px; font-size: 12px; background: #1d3557; border: none;">
+                    Delete Post
+                  </a>
+                  {% endif %}-->
+                  <a class="btn btn-info p-1" href="{% url 'Blog:post_details' unread_post.post.id %}" role="button"
+                     style="height: 28px; font-size: 12px; background: #1d3557; border: none;">
+                    <i class="fab fa-readme"></i> View Post
+                  </a>
+                </div>
+              </div>
+
+              <!-- Divider -->
+              <div class="post-divider"></div>
+
+              <!-- Post Body -->
+              <div>
+                <!-- Caption -->
+                <p class="post-caption">{{ unread_post.post.post_caption|title }}</p>
+                <!-- Images -->
+                {% if unread_post.post.postimage_set.count > 0 %}
+                  <div class="row no-gutters m-2">
+                    {% for img in unread_post.post.postimage_set.all|slice:":3" %}
+                    <div class="col{{ forloop.counter0|add:'-4' }} my-auto">
+                      <img src="{{ img.image.url }}" alt="" class="img-fluid img-thumbnail bg-danger">
+                    </div>
+                    {% endfor %}
+                    <div class="col-3 align-self-center">
+                      {% if unread_post.post.postimage_set.count > 3 %}
+                      <span class="text-dark p-1 mx-2 border rounded-circle font-weight-bold"
+                            style="font-size: 14px;">
+                        +{{ unread_post.post.postimage_set.count|add:'-3' }}
+                      </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endif %}
+                <!-- Post text -->
+                <div class="post-text">{{ unread_post.post.post_text|linebreaks|truncatewords:"30" }}</div>
+                <!-- Likes and comments -->
+                <div class="row m-1 justify-content-between">
+                  <!-- Like count -->
+                  <div class="text-secondary">
+                    <span class="post-like-count" id="likeCount{{ unread_post.post.id }}">
+                      {{ unread_post.post.postlike_set.count }} like{{ unread_post.post.postlike_set.count|pluralize }}
+                    </span>&nbsp
+                    <span class="post-like-count">
+                      {{ unread_post.post.postcomment_set.count }} comment{{ unread_post.post.postcomment_set.count|pluralize }}
+                    </span>
+                  </div>
+                  <div>
+                  <!-- Comment icon -->
+                  <button class="p-0 mr-1" id="comment{{ unread_post.post.id }}"
+                          onclick="showComments({{ unread_post.post.id }})"
+                          style="background: white; border: none; outline: none;">
+                    <i class="far fa-comment"></i>
+                  </button>
+                  <!-- Like icon -->
+                  <button class="p-0" id="like{{ unread_post.post.id }}" onclick="likePost({{ unread_post.post.id }})"
+                          style="background: white; border: none; outline: none;">
+                    <i class="fas fa-thumbs-up"></i>
+                  </button>
+                  </div>
+                </div>
+                <!-- Comment box and send -->
+                <div class="input-group mb-2 border rounded">
+                  <input type="text" class="form-control border-0" placeholder="Comment"
+                         id="commentBox{{ unread_post.post.id }}"
+                         aria-label="Recipient's username" aria-describedby="basic-addon2">
+                  <div class="input-group-append">
+                    <button style="background: white; border: none; outline: none;" type="button"
+                            onclick="addComment({{ unread_post.post.id }})">
+                      <i class="fas fa-paper-plane"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <!-- Mark read -->
+              <div class="row justify-content-end">
+                <button class="btn btn-sm btn-warning mr-2 mb-2 font-weight-bold btnMarkRead" type="button"
+                        onclick="markRead({{ unread_post.post.id }})"
+                        style="font-size: 12px;" id="btnMarkRead{{ unread_post.post.id }}">
+                  Mark read</button>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="col-md-4 my-3"></div>
+    </div>
+    {% else %}
+      <h4>No unread posts</h4>
+    {% endif %}
+  </div>
+  <script>
+    function likePost(post_id) {
+      var like_cnt = document.getElementById("likeCount" + post_id)
+      var like_btn = document.getElementById("like" + post_id)
+      $.ajax(
+      {
+        type:"GET",
+        url: "{% url 'Blog:like_post' %}",
+        data:{post_id: post_id},
+        success: function(response)
+        {
+            if ( response["user_msg"] ) {
+              alert(response["user_msg"]);
+            }
+            else {
+              var like_cnt = response["like_count"]
+              if ( like_cnt === 1) {
+                $( '#likeCount'+ post_id ).text(like_cnt + " like");
+              }
+              else {
+                $( '#likeCount'+ post_id ).text(like_cnt + " likes");
+              }
+              like_btn.style.color = "blue";
+            }
+        },
+        error: function (response) {
+            alert(response["error"]);
+        }
+      })
+    }
+
+    function addComment(post_id) {
+      var comment_box = document.getElementById("commentBox" + post_id);
+      var post_comment = comment_box.value.trim();
+      if ( post_comment.length === 0 ) {
+        alert("Add some proper comment. It's blank.");
+      }
+      else {
+        $.ajax(
+        {
+          type:"GET",
+          url: "{% url 'Blog:add_comment' %}",
+          data : { post_id: post_id, comment_text: post_comment },
+          success: function(response)
+          {
+            var msg = response["message"];
+            alert(msg);
+            comment_box.value = "";
+          },
+          error: function (response) {
+              alert(response["error"]);
+          }
+        })
+      }
+    }
+
+    function markRead(post_id) {
+      $.ajax(
+      {
+        type:"GET",
+        url: "{% url 'Blog:mark_read' %}",
+        data: {post_id: post_id},
+        success: function(response)
+        {
+          if (response["message"] === "DELETED") {
+            var btn_mark_read = document.getElementById("btnMarkRead" + post_id);
+            btn_mark_read.style.display = "none";
+          }
+        },
+        error: function (response) {
+            alert(response["error"]);
+        }
+      })
+    }
+
+    function markAllRead() {
+      $.ajax(
+      {
+        type:"GET",
+        url: "{% url 'Blog:mark_all_read' %}",
+        success: function(response)
+        {
+          if (response["message"] === "DELETED") {
+            $( ".btnMarkRead" ).css( "display", "none" );
+          }
+        },
+        error: function (response) {
+            alert(response["error"]);
+        }
+      })
+    }
+  </script>
+</body>
+{% endblock %}
